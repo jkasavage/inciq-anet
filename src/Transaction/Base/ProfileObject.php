@@ -1,23 +1,13 @@
 <?php
 
-namespace Incubateiq\Gateway\Transaction;
+namespace Incubateiq\Gateway\Transaction\Base;
 
-class ProfileTransactionObject {
-	/**
-	 * Profile Transaction Data
-	 *
-	 * @var array
-	 */
-	private array $data = [
-		'customerId' => '',
-		'profileId' => '',
-		'paymentProfileId' => '',
-		'shipping_cost' => [],
-		'tax' => [],
-		'items' => [],
-		'shipping' => [],
-		'amount' => '',
-		'transactionType' => ''
+class ProfileObject {
+	protected array $data = [
+		"merchantCustomerId" => "", // System ID
+		"description" => "", // FirstName LastName
+		"email" => "",
+		"customerProfileId" => "" // Anet Profile ID
 	];
 
 	public function __construct(array $data) {
@@ -46,11 +36,12 @@ class ProfileTransactionObject {
 	 * @return mixed
 	 */
 	public function __get(string $property) {
-		return $this->data[$property];
+		return $this->data[$property] ?? null;
 	}
 
 	/**
 	 * Get Transaction Data
+	 * 		Debugging
 	 *
 	 * @return array
 	 */

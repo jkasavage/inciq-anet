@@ -2,12 +2,13 @@
 
 require('vendor/autoload.php');
 
-use Incubateiq\Gateway\Transaction as Transaction;
+use Incubateiq\Gateway\Transaction\Base as Library;
 
 $arr = [
-	'cardNumber' => 4111111111111111, //Required
-	'expiration' => '0525', // Required
-	'amount' => '60.00', //Required (Should include Shipping Cost)
+	'cardNumber' => "4111111111111111", //Required
+	'expiration' => '2026-05', // Required YYYY-MM
+	'cvv' => '168', // Required
+	'amount' => '80.00', //Required (Should include Shipping Cost)
 	'shipping_cost' => [
 		'amount' => '2.00',
 		'name' => 'Shipping Cost',
@@ -22,8 +23,8 @@ $arr = [
 	'description' => null,
 	'billing' => [
 		'firstName' => 'New',
-		'lastName' => 'Name',
-		'company' => 'Incubate IQ',
+		'lastName' => 'Wrapper',
+		'company' => '',
 		'address' => '2001 County Line Rd.',
 		'city' => 'Warrington',
 		'state' => 'PA',
@@ -34,9 +35,9 @@ $arr = [
 		'email'=> 'joe@incubateiq.com'
 	],
 	'shipping' => [
-		'firstName' => 'Tim',
-		'lastName' => 'Talom',
-		'company' => 'Incubate IQ',
+		'firstName' => 'New',
+		'lastName' => 'Wrapper',
+		'company' => '',
 		'address' => '2001 County Line Rd.',
 		'city' => 'Warrington',
 		'state' => 'PA',
@@ -50,25 +51,26 @@ $arr = [
 			'name' => '2 Piece Dubbie',
 			'description' => '2 Piece Dubbie, Duh!',
 			'quantity' => 1,
-			'price' => '10.00'
+			'price' => '38.00'
 		],
 		[
 			'id' => '2',
 			'name' => '3 Piece Duck',
-            'description' => '3 Piece Duck, Duh!',
-            'quantity' => 1,
-            'price' => '10.00'
+			'description' => '3 Piece Duck, Duh!',
+			'quantity' => 1,
+			'price' => '38.00'
 		]
 	],
 	'transactionType' => 'authCaptureTransaction', //Required
-	'customerID' => '2001',
-	'email' => 'developer@intranetiq.com',
-	'save_card' => true
+	'customerId' => '2009',
+	'email' => time() . '@intranetiq.com',
+	'save_card' => true,
+	'transactionId' => '1234567890'
 ];
 
-$customer = new Transaction\TransactionObject($arr);
-$pay = new Transaction\Transaction($customer);
+$obj = new Library\TransactionObject($arr);
+$transaction = new Library\Transaction($obj);
 
-$test = $pay->pay();
+$response = $transaction->transaction()->execute();
 
-print_r($test);
+echo $response->getResponse();

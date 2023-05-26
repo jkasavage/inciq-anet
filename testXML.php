@@ -65,12 +65,10 @@ $arr = [
 	'customerId' => '2009',
 	'email' => time() . '@intranetiq.com',
 	'save_card' => true,
-	'transactionId' => '60218439743'
+	'transactionId' => '1234567890'
 ];
 
 $obj = new Library\TransactionObject($arr);
-$transaction = new Library\Transaction($obj);
+$process = new Library\Transaction($obj);
 
-$response = $transaction->refund()->execute();
-
-echo $response->getResponse();
+echo $process->void()->getXML();

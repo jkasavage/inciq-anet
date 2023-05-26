@@ -71,6 +71,6 @@ $arr = [
 $obj = new Library\TransactionObject($arr);
 $transaction = new Library\Transaction($obj);
 
-$response = $transaction->refund()->execute();
+$response = $transaction->void()->execute();
 
 echo $response->getResponse();

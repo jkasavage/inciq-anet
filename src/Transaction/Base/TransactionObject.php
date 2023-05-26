@@ -1,16 +1,17 @@
 <?php
 
-namespace Incubateiq\Gateway\Transaction;
+namespace Incubateiq\Gateway\Transaction\Base;
 
 class TransactionObject {
 	/**
 	 * Transaction Data
+	 * 		Object Reference
 	 *
 	 * @var array
 	 */
 	private array $data = [
 		'cardNumber' => null, //Required
-		'expiration' => null, // Required
+		'expiration' => null, // Required YYYY-MM
 		'cvv' => null, // Required
 		'amount' => null, //Required (Should Include Shipping Cost),
 		'shipping_cost' => [],
@@ -44,6 +45,7 @@ class TransactionObject {
 		'transactionType' => null,
 		'customerID' => null,
 		'email' => null,
+		'transactionId' => null,
 		'save_card' => false
 	];
 
@@ -73,11 +75,12 @@ class TransactionObject {
 	 * @return mixed
 	 */
 	public function __get(string $property) {
-		return $this->data[$property];
+		return $this->data[$property] ?? null;
 	}
 
 	/**
 	 * Get Transaction Data
+	 * 		Debugging
 	 *
 	 * @return array
 	 */

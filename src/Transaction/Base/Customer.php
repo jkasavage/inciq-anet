@@ -305,9 +305,9 @@ class Customer {
 	 * @param string $profile
 	 * @param PaymentProfileObject $data
 	 *
-	 * @return void
+	 * @return bool
 	 */
-	public function updatePaymentProfile(string $profile, Library\PaymentProfileObject $data) {
+	public function updatePaymentProfile(string $profile, Library\PaymentProfileObject $data): bool {
 		$this->setRequestParent("updateCustomerPaymentProfileRequest");
 		$this->setMerchantAuthentication();
 		$this->xml->addChild("customerProfileId", $data->__get("customerProf"));
@@ -316,8 +316,7 @@ class Customer {
 		$pp = $data->__get("paymentProfile");
 
 		$bill = $pp["billTo"];
-		$billTo = $paymentProfile->addChild("billTo");
-		$this->setBillToShipTo($billTo, $bill);
+		$this->setBillToShipTo($paymentProfile, $bill);
 
 		$cc = $pp["payment"]["creditCard"];
 		$payment = $paymentProfile->addChild("payment");
@@ -327,6 +326,94 @@ class Customer {
 
 		$paymentProfile->addChild("defaultPaymentProfile", $pp["defaultPaymentProfile"]);
 		$paymentProfile->addChild("customerPaymentProfileId", $pp["customerPaymentProfileId"]);
+
+		$request = new Library\Request($this->xml);
+		$response = $request->process();
+
+		if($response->getResultCode() == "Ok") {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Delete Payment Profile
+	 *
+	 * @param string $profile
+	 * @param string $paymentProfile
+	 *
+	 * @return bool
+	 */
+	public function deletePaymentProfile(string $profile, string $paymentProfile): bool {
+		$this->setRequestParent("deleteCustomerPaymentProfileRequest");
+		$this->setMerchantAuthentication();
+
+		$this->xml->addChild("customerProfileId", $profile);
+		$this->xml->addChild("customerPaymentProfileId", $paymentProfile);
+
+		$request = new Library\Request($this->xml);
+		$response = $request->process();
+
+		if($response->getResultCode() == "Ok") {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Update Shipping Profile
+	 *
+	 * @param ShippingProfileObject $data
+	 *
+	 * @return bool
+	 */
+	public function updateShippingProfile(Library\ShippingProfileObject $data): bool {
+		$this->setRequestParent("updateCustomerShippingAddressRequest");
+		$this->setMerchantAuthentication();
+
+		$this->xml->addChild("customerProfileId", $data->__get("customerProfileId"));
+
+		$address = $data->__get("address");
+		$this->setBillToShipTo($this->xml, $address);
+		$this->xml->address->addChild("customerAddressId", $address["customerAddressId"]);
+
+		$this->xml->addChild("defaultShippingAddress", $data->__get("defaultShippingAddress"));
+
+		$request = new Library\Request($this->xml);
+		$response = $request->process();
+
+		if($response->getResultCode() == "Ok") {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Delete Shipping Profile
+	 *
+	 * @param string $profile
+	 * @param string $shippingProfile
+	 *
+	 * @return bool
+	 */
+	public function deleteShippingProfile(string $profile, string $shippingProfile): bool {
+		$this->setRequestParent("deleteCustomerShippingAddressRequest");
+		$this->setMerchantAuthentication();
+
+		$this->xml->addChild("customerProfileId", $profile);
+		$this->xml->addChild("customerAddressId", $shippingProfile);
+
+		$request = new Library\Request($this->xml);
+		$response = $request->process();
+
+		if($response->getResultCode() == "Ok") {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	/**

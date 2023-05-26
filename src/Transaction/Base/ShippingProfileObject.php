@@ -2,36 +2,28 @@
 
 namespace Incubateiq\Gateway\Transaction\Base;
 
-class PaymentProfileObject {
+class ShippingProfileObject {
 	/**
-	 * Payment Profile Data
+	 * Shipping Profile Data
 	 *
 	 * @var array
 	 */
 	protected array $data = [
 		"customerProfileId" => "",
-		"paymentProfile" => [
-			"billTo" => [
-				"firstName"	=> "",
-				"lastName"	=> "",
-				"company"	=> "",
-				"address" 	=> "",
-				"city"		=> "",
-				"state" 	=> "",
-				"zip"		=> "",
-				"country" 	=> "",
-				"phoneNumber" => "",
-				"faxNumber" => ""
-			],
-			"payment" => [
-				"creditCard" => [
-					"cardNumber" => "",
-					"expirationDate" => ""
-				]
-			],
-			"defaultPaymentProfile" => false,
-			"customerPaymentProfileId" => ""
-		]
+		"address" => [
+			"firstName"	=> "",
+			"lastName"	=> "",
+			"company"	=> "",
+			"address" 	=> "",
+			"city"		=> "",
+			"state" 	=> "",
+			"zip"		=> "",
+			"country" 	=> "",
+			"phoneNumber" => "",
+			"faxNumber" => "",
+			"customerAddressId" => ""
+		],
+		"defaultShippingAddress" => false
 	];
 
 	public function __construct(array $data) {

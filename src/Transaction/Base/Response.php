@@ -194,6 +194,111 @@ class Response {
 	}
 
 	/**
+	 * Get Batch List for Reporting
+	 *
+	 * @return array|null
+	 */
+	public function getBatchList(): ?array {
+		if($this->xml->batchList) {
+			$arr = [];
+
+			foreach($this->xml->batchList as $item) {
+				$arr[] = json_decode(json_encode($item), true);
+			}
+
+			return $arr;
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Get Transaction List
+	 *
+	 * @return array|null
+	 */
+	public function getTransactionList(): ? array {
+		if($this->xml->transactions) {
+			$arr = [];
+
+			foreach($this->xml->transactions as $transaction) {
+				$arr[] = json_decode(json_encode($transaction), true);
+			}
+
+			return $arr;
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Get Transaction Details
+	 *
+	 * @return array|null
+	 */
+	public function getTransactionDetails(): ?array {
+		if($this->xml->transaction) {
+			return json_decode(json_encode($this->xml->transaction), true);
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Get Batch Details
+	 *
+	 * @return array|null
+	 */
+	public function getBatchDetails(): ?array {
+		if($this->xml->batch) {
+			return json_decode(json_encode($this->xml->batch), true);
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Get Merchant Details
+	 *
+	 * @return array|null
+	 */
+	public function getMerchantDetails(): ?array {
+		if($this->xml->isTestMode) {
+			$arr = [
+				"isTestMode" => $this->xml->isTestMode ?? "",
+				"processors" => [],
+				"merchantName" => $this->xml->merchantName ?? "",
+				"gatewayId" => $this->xml->gatewayId ?? "",
+				"marketTypes" => [],
+				"productCodes" => [],
+				"paymentMethods" => [],
+				"currencies" => [],
+				"publicClientKey" => $this->xml->publicClientKey ?? ""
+			];
+
+			foreach($this->xml->marketTypes as $type) {
+				$arr["marketTypes"][] = json_decode(json_encode($type), true);
+			}
+
+			foreach($this->xml->productCodes as $code) {
+				$arr["productCodes"][] = json_decode(json_encode($code), true);
+			}
+
+			foreach($this->xml->paymentMethods as $pay) {
+				$arr["paymentMethods"][] = json_decode(json_encode($pay), true);
+			}
+
+			foreach($this->xml->currencies as $cur) {
+				$arr["currencies"][] = json_decode(json_encode($cur), true);
+			}
+
+			return $arr;
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * Response to Array
 	 *
 	 * @return array

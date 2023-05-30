@@ -4,6 +4,9 @@ namespace Incubateiq\Gateway\Transaction\Base\Objects;
 
 use Incubateiq\Gateway\Transaction\Base\Abstract;
 
+/**
+ * Process Customer Transaction
+ */
 class TransactionObject extends Abstract\ObjectAbstract {
 	/**
 	 * Transaction Data
@@ -41,11 +44,6 @@ class TransactionObject extends Abstract\ObjectAbstract {
 				"name" => "",
 				"description" => ""
 			],
-			"duty" => [
-				"amount" => "",
-				"name" => "",
-				"description" => ""
-			],
 			"shipping" => [
 				"amount" => "",
 				"name" => "",
@@ -53,7 +51,7 @@ class TransactionObject extends Abstract\ObjectAbstract {
 			],
 			"poNumber" => "", // When Applicable
 			"customer" => [
-				"id" => ""
+				"id" => "",
 			],
 			"billTo" => [
 				'firstName' => "",

@@ -4,6 +4,9 @@ namespace Incubateiq\Gateway\Transaction\Base\Objects;
 
 use Incubateiq\Gateway\Transaction\Base\Abstract;
 
+/**
+ * Process Customer Void
+ */
 class VoidObject extends Abstract\ObjectAbstract {
 	/**
 	 * Void Data

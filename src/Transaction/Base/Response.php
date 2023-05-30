@@ -94,6 +94,72 @@ class Response {
 	}
 
 	/**
+	 * Get Customer Data Created by Transaction
+	 *
+	 * @return array|null
+	 */
+	public function getCustomerFromTransaction(): ?array {
+		if($this->xml->customerProfileId && $this->xml->customerPaymentProfileIdList && $this->xml->customerShippingAddressIdList) {
+			$arr = [
+				"customerProfileId" => $this->xml->customerProfileId,
+				"customerPaymentProfileIdList" => [],
+				"customerShippingAddressIdList" => []
+			];
+
+			foreach($this->xml->customerPaymentProfileIdList as $payment) {
+				$arr["customerPaymentProfileIdList"][] = $payment->numericString;
+			}
+
+			foreach($this->xml->customerShippingAddressIdList as $shipping) {
+				$arr["customerShippingAddressIdList"][] = $shipping;
+			}
+
+			return $arr;
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Get Transaction Response
+	 *
+	 * @return array|null
+	 */
+	public function getTransactionResponse(): ?array {
+		if($this->xml->transactionResponse) {
+			return json_decode(json_encode($this->xml->transactionResponse), true);
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Get Transaction ID
+	 *
+	 * @return string|null
+	 */
+	public function getTransactionId(): ?string {
+		if($this->xml->transactionResponse->transId) {
+			return $this->xml->transactionResponse->transId;
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Get Auth Code
+	 *
+	 * @return string|null
+	 */
+	public function getAuthCode(): ?string {
+		if($this->xml->transactionResponse->authCode) {
+			return $this->xml->transactionResponse->authCode;
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * Get All Customer IDs
 	 *
 	 * @return ?array

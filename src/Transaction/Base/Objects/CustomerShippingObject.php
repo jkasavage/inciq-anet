@@ -4,6 +4,9 @@ namespace Incubateiq\Gateway\Transaction\Base\Objects;
 
 use Incubateiq\Gateway\Transaction\Base\Abstract;
 
+/**
+ * Create Customer Shipping Profile
+ */
 class CustomerShippingObject extends Abstract\ObjectAbstract {
 	/**
 	 * Customer Shipping Data

@@ -52,13 +52,12 @@ class Request {
 
 		$response = curl_exec($ch);
 
-		echo "\n\nXML: " . $this->xml->asXML() . "\n\n";
+		//echo "\n\nXML: " . $this->xml->asXML() . "\n\n";
+		//echo "XML Raw: " . print_r(json_decode(json_encode($this->xml), true)) . "\n\n";
 
-		echo "\n\nResponse: " . $response . "\n\n";
+		//echo "\n\nResponse: " . $response . "\n\n";
 
 		$err = curl_error($ch);
-
-		echo "\n\nError: " . $err . "\n\n";
 
 		if(!$err) {
 			$xml = @simplexml_load_string($response);

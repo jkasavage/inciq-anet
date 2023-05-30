@@ -3,101 +3,27 @@
 namespace Incubateiq\Gateway\Transaction\Base;
 
 use Incubateiq\Gateway\Transaction\Base as Library;
-use Incubateiq\Gateway\Transaction\Base\Env as Env;
-
-use SimpleXMLElement as XML;
+use Incubateiq\Gateway\Transaction\Base\Objects as Objects;
 
 class Customer {
 	/**
-	 * Customer Object
+	 * Customer
 	 *
-	 * @var CustomerObject
+	 * @var Objects\CustomerProfileObject|Objects\CustomerPaymentObject|Objects\CustomerShippingObject
 	 */
-	protected Library\CustomerObject $customer;
+	protected Library\Objects\CustomerProfileObject|Library\Objects\CustomerPaymentObject|Library\Objects\CustomerShippingObject $customer;
 
-	/**
-	 * XML Request
-	 *
-	 * @var XML
-	 */
-	protected XML $xml;
-
-	/**
-	 * Reference ID
-	 *
-	 * @var string
-	 */
-	private string $ref;
-
-	/**
-	 * Check if Profile is Loaded
-	 *
-	 * @var bool
-	 */
-	private bool $isLoaded = false;
-
-	public function __construct(Library\CustomerObject $customer=null) {
-		if($customer) {
+	public function __construct(string $customerId=null,
+		Objects\UpdateProfileObject|
+		Objects\CustomerProfileObject|
+		Objects\CustomerPaymentObject|
+		Objects\CustomerShippingObject $customer=null
+	) {
+		if($customerId) {
+			$this->load($customerId);
+		} else {
 			$this->customer = $customer;
-
-			$this->isLoaded = true;
 		}
-	}
-
-	/**
-	 * Set Merchant Authentication Object
-	 *
-	 * @return void
-	 */
-	private function setMerchantAuthentication(): void {
-		$merchant = $this->xml->addChild("merchantAuthentication");
-		$merchant->addChild("name", Env::ID);
-		$merchant->addChild("transactionKey", Env::KEY);
-	}
-
-	/**
-	 * Set Reference ID
-	 *
-	 * @param string $ref
-	 *
-	 * @return void
-	 */
-	private function setRefId(string $ref): void {
-		$this->xml->addChild("refId", $ref . time());
-	}
-
-	/**
-	 * Is Loaded with Customer Data
-	 *
-	 * @return bool
-	 */
-	private function isLoaded(): bool {
-		return $this->isLoaded;
-	}
-
-	/**
-	 * Set Bill To/Ship To
-	 * 		Defaults to billTo
-	 *
-	 * @param XML $parent
-	 * @param string $type
-	 * @param array $info
-	 *
-	 * @return void
-	 */
-	private function setBillToShipTo(XML $parent, array $info, string $type="billTo"): void {
-		$ext = $parent->addChild($type);
-
-		$ext->addChild("firstName", $info["firstName"]);
-		$ext->addChild("lastName", $info["lastName"]);
-		$ext->addChild("company", $info["company"] ?? "");
-		$ext->addChild("address", $info["address"]);
-		$ext->addChild("city", $info["city"]);
-		$ext->addChild("state", $info["state"]);
-		$ext->addChild("zip", $info["zip"]);
-		$ext->addChild("country", $info["country"] ?? "US");
-		$ext->addChild("phoneNumber", $info["phoneNumber"]);
-		$ext->addChild("faxNumber", $info["fax"] ?? "");
 	}
 
 	/**
@@ -105,23 +31,20 @@ class Customer {
 	 *
 	 * @param string $profileId
 	 *
-	 * @return ?Library\Customer
+	 * @return array|null Customer Profile Array
 	 */
-	public function load(string $profileId): ?Customer {
-		$this->setRequestParent("getCustomerProfileRequest");
+	public function load(string $profileId): ?array {
+		$arr = [
+			"customerProfileId" => $profileId,
+			"includeIssuerInfo" => true
+		];
 
-		$this->setMerchantAuthentication();
-
-		$this->xml->addChild("customerProfileId", $profileId);
-		$this->xml->addChild("includeIssuerInfo", true);
-
-		$request = new Library\Request($this->xml);
+		$builder = new Library\Builder("getCustomerProfileRequest", $arr);
+		$request = new Library\Request($builder->getRequest());
 		$response = $request->process();
 
 		if($response->getResultCode() == "Ok") {
-			$this->customer = new Library\CustomerObject($response->getCustomer());
-
-			return $this;
+			return $response->getCustomer();
 		} else {
 			return null;
 		}
@@ -130,37 +53,20 @@ class Customer {
 	/**
 	 * Create Customer Profile
 	 *
-	 * @param CreateCustomerObject $user
-	 *
-	 * @return ?Library\Response
+	 * @return string|null Customer Profile ID
+	 * @throws \ErrorException
 	 */
-	public function createCustomer(Library\CreateCustomerObject $user): ?Library\Response {
-		$this->setRequestParent("createCustomerProfileRequest");
+	public function createCustomer(): ?string {
+		if(!$this->customer instanceof Objects\CustomerProfileObject) {
+			throw new \ErrorException("You need to use Objects\CustomerProfileObject, you are using " . get_class($this->customer) . ".");
+		}
 
-		$this->setMerchantAuthentication();
-		$this->setRefId('cr');
-
-		$profile = $this->xml->addChild("profile");
-		$profile->addChild("merchantCustomerId", $user->__get("customerId"));
-		$profile->addChild("description", $user->__get("firstName") . " " . $user->__get("lastName"));
-		$profile->addChild("email", $user->__get("email"));
-
-		$paymentProfiles = $profile->addChild("paymentProfiles");
-		$paymentProfiles->addChild("customerType", $user->__get("customerType"));
-
-		$creditCard_data = $user->__get("paymentProfiles")["creditCard"];
-
-		$payment = $paymentProfiles->addChild("payment");
-
-		$creditCard = $payment->addChild("creditCard");
-		$creditCard->addChild("cardNumber", $creditCard_data["cardNumber"]);
-		$creditCard->addChild("expirationDate", $creditCard_data["expiration"]);
-
-		$request = new Library\Request($this->xml);
+		$builder = new Library\Builder("createCustomerProfileRequest", $this->customer->getData());
+		$request = new Library\Request($builder->getRequest());
 		$response = $request->process();
 
 		if($response->getResultCode() == "Ok") {
-			return $response;
+			return $response->getCustomerProfileId();
 		} else {
 			return null;
 		}
@@ -169,38 +75,20 @@ class Customer {
 	/**
 	 * Create Customer Payment Profile
 	 *
-	 * @param string $profile
-	 * @param CreateCustomerObject $data
-	 *
-	 * @return ?Library\Response
+	 * @return string|null Customer Payment Profile ID
+	 * @throws \ErrorException
 	 */
-	public function createCustomerPaymentProfile(string $profile, Library\CreateCustomerObject $data): ?Library\Response {
-		$this->setRequestParent("createCustomerPaymentProfileRequest");
+	public function createCustomerPaymentProfile(): ?string {
+		if(!$this->customer instanceof Objects\CustomerPaymentObject) {
+			throw new \ErrorException("You need to use Objects\CustomerPaymentObject, you are using " . get_class($this->customer) . ".");
+		}
 
-		$this->setMerchantAuthentication();
-
-		$this->xml->addChild("customerProfileId", $profile);
-
-		$paymentProfile = $this->xml->addChild("paymentProfile");
-
-		$billTo_data = $data->__get('billTo');
-
-		$this->setBillToShipTo($paymentProfile, $billTo_data);
-
-		$cc = $data->__get('paymentProfiles')["creditCard"];
-
-		$payment = $paymentProfile->addChild("payment");
-		$creditCard =  $payment->addChild("creditCard");
-		$creditCard->addChild("cardNumber", $cc["cardNumber"]);
-		$creditCard->addChild("expirationDate", $cc["expiration"]);
-
-		$paymentProfile->addChild("defaultPaymentProfile", $data->__get("default"));
-
-		$request = new Library\Request($this->xml);
+		$builder = new Library\Builder("createCustomerPaymentProfileRequest", $this->customer->getData());
+		$request = new Library\Request($builder->getRequest());
 		$response = $request->process();
 
 		if($response->getResultCode() == "Ok") {
-			return $response;
+			return $response->getCustomerPaymentProfileId();
 		} else {
 			return null;
 		}
@@ -209,22 +97,20 @@ class Customer {
 	/**
 	 * Create Customer Shipping Profile
 	 *
-	 * @param string $profile
-	 * @param CreateCustomerObject $customer
-	 *
-	 * @return ?Library\Response
+	 * @return string|null
+	 * @throws \ErrorException
 	 */
-	public function createCustomerShippingProfile(string $profile, Library\CreateCustomerObject $customer): ?Library\Response {
-		$this->setRequestParent("createCustomerShippingAddressRequest");
-		$this->setMerchantAuthentication();
-		$this->xml->addChild("customerProfileId", $profile);
-		$this->setBillToShipTo($this->xml, $customer->__get("billTo"), "address");
+	public function createCustomerShippingProfile(): ?string {
+		if(!$this->customer instanceof Objects\CustomerShippingObject) {
+			throw new \ErrorException("You need to use Objects\CustomerShippingObject, you are using " . get_class($this->customer) . ".");
+		}
 
-		$request = new Library\Request($this->xml);
+		$builder = new Library\Builder("createCustomerShippingAddressRequest", $this->customer->getData());
+		$request = new Library\Request($builder->getRequest());
 		$response = $request->process();
 
 		if($response->getResultCode() == "Ok") {
-			return $response;
+			return $response->getCustomerShippingProfileId();
 		} else {
 			return null;
 		}
@@ -233,17 +119,15 @@ class Customer {
 	/**
 	 * Get All Customers from Merchant
 	 *
-	 * @return ?Library\Response
+	 * @return array|null
 	 */
-	public function getAllCustomers(): ?Library\Response{
-		$this->setRequestParent("getCustomerProfileIdsRequest");
-		$this->setMerchantAuthentication();
-
-		$request = new Library\Request($this->xml);
+	public function getAllCustomers(): ?array {
+		$builder = new Library\Builder("getCustomerProfileIdsRequest");
+		$request = new Library\Request($builder->getRequest());
 		$response = $request->process();
 
 		if($response->getResultCode() == "Ok") {
-			return $response;
+			return $response->getAllCustomerIds();
 		} else {
 			return null;
 		}
@@ -252,22 +136,60 @@ class Customer {
 	/**
 	 * Update Customer Profile
 	 *
-	 * @param string $profile
-	 * @param ProfileObject $data
+	 * @return bool
+	 * @throws \ErrorException
+	 */
+	public function updateCustomerProfile(): bool {
+		if(!$this->customer instanceof Objects\UpdateProfileObject) {
+			throw new \ErrorException("You need to use Objects\UpdateProfileObject, you are using " . get_class($this->customer) . ".");
+		}
+
+		$builder = new Library\Builder("updateCustomerProfileRequest", $this->customer->getData());
+		$request = new Library\Request($builder->getRequest());
+		$response = $request->process();
+
+		if($response->getResultCode() == "Ok") {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Update Payment Profile
 	 *
 	 * @return bool
+	 * @throws \ErrorException
 	 */
-	public function updateCustomerProfile(string $profile, Library\ProfileObject $data): bool {
-		$this->setRequestParent("updateCustomerProfileRequest");
-		$this->setMerchantAuthentication();
+	public function updatePaymentProfile(): bool {
+		if(!$this->customer instanceof Objects\CustomerPaymentObject) {
+			throw new \ErrorException("You need to use Objects\CustomerPaymentObject, you are using " . get_class($this->customer));
+		}
 
-		$profile = $this->xml->addChild("profile");
-		$profile->addChild("merchantCustomerId", $data->__get("merchantCustomerId"));
-		$profile->addChild("description", $data->__get("description"));
-		$profile->addChild("email", $data->__get("email"));
-		$profile->addChild('customerProfileId', $data->__get("customerProfileId"));
+		$builder = new Library\Builder("updateCustomerPaymentProfileRequest", $this->customer->getData());
+		$request = new Library\Request($builder->getRequest());
+		$response = $request->process();
 
-		$request = new Library\Request($this->xml);
+		if($response->getResultCode() == "Ok") {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Update Shipping Profile
+	 *
+	 * @return bool
+	 * @throws \ErrorException
+	 */
+	public function updateShippingProfile(): bool {
+		if(!$this->customer instanceof Objects\CustomerPaymentObject) {
+			throw new \ErrorException("You need to use Objects\CustomerPaymentObject, you are using " . get_class($this->customer));
+		}
+
+		$builder = new Library\Builder("updateCustomerShippingAddressRequest", $this->customer->getData());
+		$request = new Library\Request($builder->getRequest());
 		$response = $request->process();
 
 		if($response->getResultCode() == "Ok") {
@@ -285,49 +207,12 @@ class Customer {
 	 * @return bool
 	 */
 	public function deleteCustomerProfile(string $profile): bool {
-		$this->setRequestParent("deleteCustomerProfileRequest");
-		$this->setMerchantAuthentication();
-		$this->xml->addChild("customerProfileId", $profile);
+		$arr = [
+			"customerProfileId" => $profile
+		];
 
-		$request = new Library\Request($this->xml);
-		$response = $request->process();
-
-		if($response->getResultCode() == "Ok") {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Update Payment Profile
-	 *
-	 * @param string $profile
-	 * @param PaymentProfileObject $data
-	 *
-	 * @return bool
-	 */
-	public function updatePaymentProfile(string $profile, Library\PaymentProfileObject $data): bool {
-		$this->setRequestParent("updateCustomerPaymentProfileRequest");
-		$this->setMerchantAuthentication();
-		$this->xml->addChild("customerProfileId", $data->__get("customerProf"));
-
-		$paymentProfile = $this->xml->addChild("paymentProfile");
-		$pp = $data->__get("paymentProfile");
-
-		$bill = $pp["billTo"];
-		$this->setBillToShipTo($paymentProfile, $bill);
-
-		$cc = $pp["payment"]["creditCard"];
-		$payment = $paymentProfile->addChild("payment");
-		$creditCard = $payment->addChild("creditCard");
-		$creditCard->addChild("cardNumber", $cc["cardNumber"]);
-		$creditCard->addChild("expirationDate", $cc["expirationDate"]);
-
-		$paymentProfile->addChild("defaultPaymentProfile", $pp["defaultPaymentProfile"]);
-		$paymentProfile->addChild("customerPaymentProfileId", $pp["customerPaymentProfileId"]);
-
-		$request = new Library\Request($this->xml);
+		$builder = new Library\Builder("deleteCustomerProfileRequest", $arr);
+		$request = new Library\Request($builder->getRequest());
 		$response = $request->process();
 
 		if($response->getResultCode() == "Ok") {
@@ -346,42 +231,13 @@ class Customer {
 	 * @return bool
 	 */
 	public function deletePaymentProfile(string $profile, string $paymentProfile): bool {
-		$this->setRequestParent("deleteCustomerPaymentProfileRequest");
-		$this->setMerchantAuthentication();
+		$arr = [
+			"customerProfileId" => $profile,
+			"customerPaymentProfileId" => $paymentProfile
+		];
 
-		$this->xml->addChild("customerProfileId", $profile);
-		$this->xml->addChild("customerPaymentProfileId", $paymentProfile);
-
-		$request = new Library\Request($this->xml);
-		$response = $request->process();
-
-		if($response->getResultCode() == "Ok") {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Update Shipping Profile
-	 *
-	 * @param ShippingProfileObject $data
-	 *
-	 * @return bool
-	 */
-	public function updateShippingProfile(Library\ShippingProfileObject $data): bool {
-		$this->setRequestParent("updateCustomerShippingAddressRequest");
-		$this->setMerchantAuthentication();
-
-		$this->xml->addChild("customerProfileId", $data->__get("customerProfileId"));
-
-		$address = $data->__get("address");
-		$this->setBillToShipTo($this->xml, $address);
-		$this->xml->address->addChild("customerAddressId", $address["customerAddressId"]);
-
-		$this->xml->addChild("defaultShippingAddress", $data->__get("defaultShippingAddress"));
-
-		$request = new Library\Request($this->xml);
+		$builder = new Library\Builder("deleteCustomerPaymentProfileRequest", $arr);
+		$request = new Library\Request($builder->getRequest());
 		$response = $request->process();
 
 		if($response->getResultCode() == "Ok") {
@@ -400,13 +256,13 @@ class Customer {
 	 * @return bool
 	 */
 	public function deleteShippingProfile(string $profile, string $shippingProfile): bool {
-		$this->setRequestParent("deleteCustomerShippingAddressRequest");
-		$this->setMerchantAuthentication();
+		$arr = [
+			"customerProfileId" => $profile,
+			"customerAddressId" => $shippingProfile
+		];
 
-		$this->xml->addChild("customerProfileId", $profile);
-		$this->xml->addChild("customerAddressId", $shippingProfile);
-
-		$request = new Library\Request($this->xml);
+		$builder = new Library\Builder("deleteCustomerShippingAddressRequest", $arr);
+		$request = new Library\Request($builder->getRequest());
 		$response = $request->process();
 
 		if($response->getResultCode() == "Ok") {
@@ -417,23 +273,25 @@ class Customer {
 	}
 
 	/**
-	 * Set XML Parent and Schema
+	 * Create Customer from Transaction
 	 *
-	 * @param string $parent
+	 * @param string $transId
 	 *
-	 * @return void
+	 * @return array|null
 	 */
-	private function setRequestParent(string $parent): void {
-		$this->xml = new XML("<" . $parent . "></" . $parent . ">");
-		$this->xml->addAttribute('xmlns', "AnetApi/xml/v1/schema/AnetApiSchema.xsd");
-	}
+	public function createCustomerFromTransaction(string $transId): ?array {
+		$arr = [
+			"transId" => $transId
+		];
 
-	/**
-	 * Debug Customer Data
-	 *
-	 * @return array
-	 */
-	public function debugCustomer(): array {
-		return $this->customer->getTransactionData();
+		$builder = new Library\Builder("createCustomerProfileFromTransactionRequest", $arr);
+		$request = new Library\Request($builder->getRequest());
+		$response = $request->process();
+
+		if($response->getResultCode() == "Ok") {
+			return $response->getCustomerFromTransaction();
+		} else {
+			return null;
+		}
 	}
 }

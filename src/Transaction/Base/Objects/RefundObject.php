@@ -4,6 +4,9 @@ namespace Incubateiq\Gateway\Transaction\Base\Objects;
 
 use Incubateiq\Gateway\Transaction\Base\Abstract;
 
+/**
+ * Process Transaction Refund
+ */
 class RefundObject extends Abstract\ObjectAbstract {
 	/**
 	 * Refund Data

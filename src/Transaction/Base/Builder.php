@@ -36,8 +36,8 @@ class Builder {
 		"lineItems" => "lineItem"
 	];
 
-	public function __construct(string $requestType, array $data) {
-		$this->xml = new XML("<" . $requestType . "></" . $requestType . ">");
+	public function __construct(string $requestType, array $data=null) {
+		$this->xml = new XML('<?xml version="1.0" encoding="UTF-8"?>' . "<" . $requestType . "></" . $requestType . ">");
 		$this->xml->addAttribute('xmlns', "AnetApi/xml/v1/schema/AnetApiSchema.xsd");
 
 		$this->data = $data;
@@ -52,8 +52,10 @@ class Builder {
 	private function buildRequest(): void {
 		$this->setMerchantAuthentication();
 
-		foreach($this->data as $key=>$value) {
-			$this->addNode($this->xml, $key, $value);
+		if($this->data) {
+			foreach($this->data as $key=>$value) {
+				$this->addNode($this->xml, $key, $value);
+			}
 		}
 	}
 

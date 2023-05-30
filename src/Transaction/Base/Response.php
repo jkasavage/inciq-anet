@@ -17,7 +17,7 @@ class Response {
 	}
 
 	/**
-	 * Get Response as Array
+	 * Get Response as String
 	 *
 	 * @return string|bool
 	 */

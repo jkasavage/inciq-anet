@@ -68,7 +68,7 @@ $arr = [
 	'transactionId' => '1234567890'
 ];
 
-$obj = new Library\TransactionObject($arr);
+$obj = new Library\Objects\TransactionObject($arr);
 $process = new Library\Transaction($obj);
 
 echo $process->void()->getXML();

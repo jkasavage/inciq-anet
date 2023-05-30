@@ -68,7 +68,7 @@ $arr = [
 	'transactionId' => '1234567890'
 ];
 
-$obj = new Library\TransactionObject($arr);
+$obj = new Library\Objects\TransactionObject($arr);
 $transaction = new Library\Transaction($obj);
 
 $response = $transaction->transaction()->execute();

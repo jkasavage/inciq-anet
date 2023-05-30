@@ -14,28 +14,92 @@ class Builder {
 	protected XML $xml;
 
 	/**
+	 * Request Data
+	 *
+	 * @var array
+	 */
+	protected array $data;
+
+	/**
 	 * Reference ID
 	 *
 	 * @var string
 	 */
 	protected string $ref;
 
-	public function __construct(string $requestType) {
+	/**
+	 * List of Child Elements for nested Nodes
+	 *
+	 * @var array|string[]
+	 */
+	private array $children = [
+		"lineItems" => "lineItem"
+	];
+
+	public function __construct(string $requestType, array $data) {
 		$this->xml = new XML("<" . $requestType . "></" . $requestType . ">");
 		$this->xml->addAttribute('xmlns', "AnetApi/xml/v1/schema/AnetApiSchema.xsd");
+
+		$this->data = $data;
+		$this->buildRequest();
+	}
+
+	/**
+	 * Build Request from Data (Array)
+	 *
+	 * @return void
+	 */
+	private function buildRequest(): void {
+		$this->setMerchantAuthentication();
+
+		foreach($this->data as $key=>$value) {
+			$this->addNode($this->xml, $key, $value);
+		}
+	}
+
+	/**
+	 * Add Node to Request
+	 *
+	 * @param XML $parent
+	 * @param string $node
+	 * @param string|array $value
+	 *
+	 * @return void
+	 */
+	private function addNode(XML $parent, string $node, string|array $value): void {
+		if(!is_array($value)) {
+			if($node === "refId") {
+				$this->setRefId($value);
+				$parent->addChild($node, $this->ref);
+			} else {
+				$parent->addChild($node, $value);
+			}
+		} else {
+			$spawn = $parent->addChild($node);
+
+			foreach($value as $k=>$v) {
+				if(!is_array($v)) {
+					$spawn->addChild($k, $v);
+				} else {
+					if(!is_integer($k)) {
+						$this->addNode($spawn, $k, $v);
+					} else {
+						$this->addNode($spawn, $this->children[$node], $v);
+					}
+				}
+			}
+		}
 	}
 
 	/**
 	 * Set Merchant Authentication
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setMerchantAuthentication(): Builder {
+	private function setMerchantAuthentication(): void {
 		$merchant = $this->xml->addChild("merchantAuthentication");
 		$merchant->addChild("name", Env::ID);
 		$merchant->addChild("transactionKey", Env::KEY);
-
-		return $this;
 	}
 
 	/**
@@ -43,12 +107,11 @@ class Builder {
 	 *
 	 * @param string $ref
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setRefId(string $ref): Builder {
-		$this->xml->addChild("refId", $ref . time());
-
-		return $this;
+	private function setRefId(string $ref): void {
+		$unique = $ref . time();
+		$this->ref = $unique;
 	}
 
 	/**
@@ -61,29 +124,12 @@ class Builder {
 	}
 
 	/**
-	 * Set Bill To / Ship To / Address Nodes
+	 * View XML for Debugging
 	 *
-	 * @param XML $parent
-	 * @param array $info
-	 * @param string $type
-	 *
-	 * @return $this
+	 * @return string
 	 */
-	public function setBillToShipTo(XML $parent, array $info, string $type="billTo"): Builder {
-		$ext = $parent->addChild($type);
-
-		$ext->addChild("firstName", $info["firstName"]);
-		$ext->addChild("lastName", $info["lastName"]);
-		$ext->addChild("company", $info["company"] ?? "");
-		$ext->addChild("address", $info["address"]);
-		$ext->addChild("city", $info["city"]);
-		$ext->addChild("state", $info["state"]);
-		$ext->addChild("zip", $info["zip"]);
-		$ext->addChild("country", $info["country"] ?? "US");
-		$ext->addChild("phoneNumber", $info["phoneNumber"]);
-		$ext->addChild("faxNumber", $info["fax"] ?? "");
-
-		return $this;
+	public function debug(): string {
+		return $this->xml->asXML();
 	}
 
 	/**

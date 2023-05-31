@@ -4,17 +4,19 @@ namespace Incubateiq\Gateway\Transaction\Base;
 
 use Incubateiq\Gateway\Transaction\Base as Library;
 use Incubateiq\Gateway\Transaction\Base\Objects as Objects;
+use ErrorException;
 
 class Customer {
 	/**
 	 * Customer
 	 *
-	 * @var Objects\CustomerProfileObject|Objects\CustomerPaymentObject|Objects\CustomerShippingObject
+	 * @var Objects\UpdateProfileObject | Objects\ChargeCustomerObject | Objects\CustomerProfileObject | Objects\CustomerPaymentObject | Objects\CustomerShippingObject | null
 	 */
-	protected Library\Objects\CustomerProfileObject|Library\Objects\CustomerPaymentObject|Library\Objects\CustomerShippingObject $customer;
+	protected Objects\UpdateProfileObject|Objects\ChargeCustomerObject|Objects\CustomerProfileObject|Objects\CustomerPaymentObject|Objects\CustomerShippingObject|null $customer;
 
 	public function __construct(string $customerId=null,
 		Objects\UpdateProfileObject|
+		Objects\ChargeCustomerObject|
 		Objects\CustomerProfileObject|
 		Objects\CustomerPaymentObject|
 		Objects\CustomerShippingObject $customer=null
@@ -54,11 +56,12 @@ class Customer {
 	 * Create Customer Profile
 	 *
 	 * @return string|null Customer Profile ID
-	 * @throws \ErrorException
+	 *
+	 * @throws ErrorException
 	 */
 	public function createCustomer(): ?string {
 		if(!$this->customer instanceof Objects\CustomerProfileObject) {
-			throw new \ErrorException("You need to use Objects\CustomerProfileObject, you are using " . get_class($this->customer) . ".");
+			throw new ErrorException("You need to use Objects\CustomerProfileObject, you are using " . get_class($this->customer) . ".");
 		}
 
 		$builder = new Library\Builder("createCustomerProfileRequest", $this->customer->getData());
@@ -76,11 +79,12 @@ class Customer {
 	 * Create Customer Payment Profile
 	 *
 	 * @return string|null Customer Payment Profile ID
-	 * @throws \ErrorException
+	 *
+	 * @throws ErrorException
 	 */
 	public function createCustomerPaymentProfile(): ?string {
 		if(!$this->customer instanceof Objects\CustomerPaymentObject) {
-			throw new \ErrorException("You need to use Objects\CustomerPaymentObject, you are using " . get_class($this->customer) . ".");
+			throw new ErrorException("You need to use Objects\CustomerPaymentObject, you are using " . get_class($this->customer) . ".");
 		}
 
 		$builder = new Library\Builder("createCustomerPaymentProfileRequest", $this->customer->getData());
@@ -98,11 +102,12 @@ class Customer {
 	 * Create Customer Shipping Profile
 	 *
 	 * @return string|null
-	 * @throws \ErrorException
+	 *
+	 * @throws ErrorException
 	 */
 	public function createCustomerShippingProfile(): ?string {
 		if(!$this->customer instanceof Objects\CustomerShippingObject) {
-			throw new \ErrorException("You need to use Objects\CustomerShippingObject, you are using " . get_class($this->customer) . ".");
+			throw new ErrorException("You need to use Objects\CustomerShippingObject, you are using " . get_class($this->customer) . ".");
 		}
 
 		$builder = new Library\Builder("createCustomerShippingAddressRequest", $this->customer->getData());
@@ -137,11 +142,12 @@ class Customer {
 	 * Update Customer Profile
 	 *
 	 * @return bool
-	 * @throws \ErrorException
+	 *
+	 * @throws ErrorException
 	 */
 	public function updateCustomerProfile(): bool {
 		if(!$this->customer instanceof Objects\UpdateProfileObject) {
-			throw new \ErrorException("You need to use Objects\UpdateProfileObject, you are using " . get_class($this->customer) . ".");
+			throw new ErrorException("You need to use Objects\UpdateProfileObject, you are using " . get_class($this->customer) . ".");
 		}
 
 		$builder = new Library\Builder("updateCustomerProfileRequest", $this->customer->getData());
@@ -159,11 +165,11 @@ class Customer {
 	 * Update Payment Profile
 	 *
 	 * @return bool
-	 * @throws \ErrorException
+	 * @throws ErrorException
 	 */
 	public function updatePaymentProfile(): bool {
 		if(!$this->customer instanceof Objects\CustomerPaymentObject) {
-			throw new \ErrorException("You need to use Objects\CustomerPaymentObject, you are using " . get_class($this->customer));
+			throw new ErrorException("You need to use Objects\CustomerPaymentObject, you are using " . get_class($this->customer));
 		}
 
 		$builder = new Library\Builder("updateCustomerPaymentProfileRequest", $this->customer->getData());
@@ -181,11 +187,11 @@ class Customer {
 	 * Update Shipping Profile
 	 *
 	 * @return bool
-	 * @throws \ErrorException
+	 * @throws ErrorException
 	 */
 	public function updateShippingProfile(): bool {
 		if(!$this->customer instanceof Objects\CustomerPaymentObject) {
-			throw new \ErrorException("You need to use Objects\CustomerPaymentObject, you are using " . get_class($this->customer));
+			throw new ErrorException("You need to use Objects\CustomerPaymentObject, you are using " . get_class($this->customer));
 		}
 
 		$builder = new Library\Builder("updateCustomerShippingAddressRequest", $this->customer->getData());
@@ -290,6 +296,32 @@ class Customer {
 
 		if($response->getResultCode() == "Ok") {
 			return $response->getCustomerFromTransaction();
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Charge Customer Profile
+	 *
+	 * @param string $profileId
+	 * @param string $paymentProfile
+	 *
+	 * @return array|null
+	 *
+	 * @throws ErrorException
+	 */
+	public function chargeCustomerProfile(string $profileId, string $paymentProfile): ?array {
+		if(!($this->customer instanceof Objects\ChargeCustomerObject)) {
+			throw new ErrorException("You need to use Objects\ChargeCustomerObject, not " . get_class($this->customer));
+		}
+
+		$builder = new Library\Builder("createTransactionRequest", $this->customer);
+		$request = new Library\Request($builder->getRequest());
+		$response = $request->process();
+
+		if($response->getResultCode() == "Ok") {
+			return $response->getTransactionResponse();
 		} else {
 			return null;
 		}

@@ -40,22 +40,15 @@ class Request {
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-		// TODO: Add Dynamic Pathing via Env
-		curl_setopt($ch, CURLOPT_CAINFO, '/var/www/html/anet/src/Transaction/Base/cert/cert.pem');
-
-		curl_setopt($ch, CURLOPT_VERBOSE, true);
+		curl_setopt($ch, CURLOPT_CAINFO, Env::CA);
 
 		// v DISABLE (COMMENT OUT) FOR PRODUCTION v
-		$verbose = fopen("php://stdout", "w+");
-		curl_setopt($ch, CURLOPT_STDERR, $verbose);
+		//curl_setopt($ch, CURLOPT_VERBOSE, true);
+		//$verbose = fopen("php://stdout", "w+");
+		//curl_setopt($ch, CURLOPT_STDERR, $verbose);
 		// ^ DISABLE (COMMENT OUT) FOR PRODUCTION ^
 
 		$response = curl_exec($ch);
-
-		//echo "\n\nXML: " . $this->xml->asXML() . "\n\n";
-		//echo "XML Raw: " . print_r(json_decode(json_encode($this->xml), true)) . "\n\n";
-
-		//echo "\n\nResponse: " . $response . "\n\n";
 
 		$err = curl_error($ch);
 

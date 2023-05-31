@@ -26,4 +26,11 @@ class Env {
 	 * @var string
 	 */
 	const URL = 'https://apitest.authorize.net';
+
+	/**
+	 * Authorize.net SSL Certificate
+	 *
+	 * @var string
+	 */
+	const CA = __DIR__ . '/cert/cert.pem';
 }

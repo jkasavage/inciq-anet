@@ -14,15 +14,16 @@ class Customer {
 	 */
 	protected Objects\UpdateProfileObject|Objects\ChargeCustomerObject|Objects\CustomerProfileObject|Objects\CustomerPaymentObject|Objects\CustomerShippingObject|null $customer;
 
-	public function __construct(string $customerId=null,
+	public function __construct(
 		Objects\UpdateProfileObject|
 		Objects\ChargeCustomerObject|
 		Objects\CustomerProfileObject|
 		Objects\CustomerPaymentObject|
-		Objects\CustomerShippingObject $customer=null
+		Objects\CustomerShippingObject $customer=null,
+		string $customerId=null
 	) {
 		if($customerId) {
-			$this->load($customerId);
+			return $this->load($customerId);
 		} else {
 			$this->customer = $customer;
 		}

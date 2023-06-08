@@ -19,7 +19,7 @@ class CustomerProfileObject extends Abstract\ObjectAbstract {
 			"merchantCustomerId" => "",
 			"description" => "",
 			"email" => "",
-			"paymentProfile" => [
+			"paymentProfiles" => [
 				"customerType" => "", // Individual or Business
 				"payment" => [
 					"creditCard" => [

@@ -6,7 +6,6 @@ use Incubateiq\Gateway\Transaction\Base as Library;
 
 $id = "911828606";
 
-$obj = new Library\Customer();
-$response = $obj->load($id);
+$customer = new Library\Customer(null, $id);
 
-var_dump($response->debugCustomer());
+print_r($customer);

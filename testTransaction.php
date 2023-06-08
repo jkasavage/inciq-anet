@@ -58,15 +58,13 @@ $arr = [
 			"state" => "PA",
 			"zip" => "18976",
 			"country" => "US"
-		]
+		],
+		"customerIP" => "192.168.0.1"
 	]
 ];
 
 $obj = new Library\Objects\TransactionObject($arr);
 $trans = new Library\Transaction($obj);
-
-echo "XML: " . $trans->getXML() . "\n\n";
-
 $response =  $trans->execute();
 
 echo "Response Code: " . $response->getResultCode() . "\n\n";

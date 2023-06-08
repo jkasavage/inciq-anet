@@ -5,72 +5,75 @@ require('vendor/autoload.php');
 use Incubateiq\Gateway\Transaction\Base as Library;
 
 $arr = [
-	'cardNumber' => "4111111111111111", //Required
-	'expiration' => '2026-05', // Required YYYY-MM
-	'cvv' => '168', // Required
-	'amount' => '80.00', //Required (Should include Shipping Cost)
-	'shipping_cost' => [
-		'amount' => '2.00',
-		'name' => 'Shipping Cost',
-		'description' => 'Shipping Cost'
-	],
-	'tax' => [
-		'amount' => '2.00',
-		'name' => 'Sales Tax',
-		'description' => 'State Sales Tax'
-	],
-	'invoiceId' => null,
-	'description' => null,
-	'billing' => [
-		'firstName' => 'New',
-		'lastName' => 'Wrapper',
-		'company' => '',
-		'address' => '2001 County Line Rd.',
-		'city' => 'Warrington',
-		'state' => 'PA',
-		'zip' => '18976',
-		'country' => 'USA',
-		'phone' => '2672818200',
-		'fax' => '2672818200',
-		'email'=> 'joe@incubateiq.com'
-	],
-	'shipping' => [
-		'firstName' => 'New',
-		'lastName' => 'Wrapper',
-		'company' => '',
-		'address' => '2001 County Line Rd.',
-		'city' => 'Warrington',
-		'state' => 'PA',
-		'zip' => '18976',
-		'country' => 'USA',
-		'email'=> 'joe@incubateiq.com'
-	],
-	'items' => [
-		[
-			'id' => '1',
-			'name' => '2 Piece Dubbie',
-			'description' => '2 Piece Dubbie, Duh!',
-			'quantity' => 1,
-			'price' => '38.00'
+	"refId" => "cc", // cc - Credit Card Transaction
+	"transactionRequest" => [
+		"transactionType" => "authCaptureTransaction",
+		"amount" => "50.00",
+		"payment" => [
+			"creditCard" => [
+				"cardNumber" => "4111111111111111",
+				"expirationDate" => "2026-12",
+				"cardCode" => "168"
+			]
 		],
-		[
-			'id' => '2',
-			'name' => '3 Piece Duck',
-			'description' => '3 Piece Duck, Duh!',
-			'quantity' => 1,
-			'price' => '38.00'
-		]
-	],
-	'transactionType' => 'authCaptureTransaction', //Required
-	'customerId' => '2009',
-	'email' => time() . '@intranetiq.com',
-	'save_card' => true,
-	'transactionId' => '1234567890'
+		"order" => [
+			"invoiceNumber" => "123456",
+			"description" => "Your Order"
+		],
+		"lineItems" => [
+			[
+				'id' => "1",
+				'name' => "Some Item",
+				'description' => "Item",
+				'quantity' => "1", // Integer or String
+				'price' => "46.00"
+			]
+		],
+		"tax" => [
+			"amount" => "2.00",
+			"name" => "Sales Tax",
+			"description" => "Tax"
+		],
+		"shipping" => [
+			"amount" => "2.00",
+			"name" => "Shipping Cost",
+			"description" => "Shipping"
+		],
+		"poNumber" => "123456", // When Applicable
+		"customer" => [
+			"id" => "2001",
+		],
+		"billTo" => [
+			'firstName' => "Test",
+			'lastName' => "Name",
+			'company' => "Here",
+			'address' => "2001 County Line Road",
+			'city' => "Warrington",
+			'state' => "PA",
+			'zip' => "18976",
+			'country' => "US"
+		],
+		"shipTo" => [
+			'firstName' => "Test",
+			'lastName' => "Name",
+			'company' => "Here",
+			'address' => "2001 County Line Road",
+			'city' => "Warrington",
+			'state' => "PA",
+			'zip' => "18976",
+			'country' => "US"
+		],
+		"customerIP" => "192.168.0.1"
+	]
 ];
 
 $obj = new Library\Objects\TransactionObject($arr);
-$transaction = new Library\Transaction($obj);
+$trans = new Library\Transaction($obj);
 
-$response = $transaction->transaction()->execute();
+$response = $trans->execute();
 
-echo $response->getResponse();
+if($response->getResultCode() == "Ok") {
+	echo "Success\n\n";
+} else {
+	echo "Error\n\n";
+}

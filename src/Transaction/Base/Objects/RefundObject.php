@@ -17,7 +17,7 @@ class RefundObject extends Abstract\ObjectAbstract {
 	protected array $data = [
 		"refId" => "", // re - Refund Transaction
 		"transactionRequest" => [
-			"transactionType" => "",
+			"transactionType" => "", // refundTransaction
 			"amount" => "",
 			"payment" => [
 				"creditCard" => [
